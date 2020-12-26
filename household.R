@@ -1,0 +1,18 @@
+household_data <- read.csv(file.choose())
+head(household_data)
+tail(household_data)
+install.packages("psych")
+library(psych)
+rowSums(household_data[1:30,])
+EFA_model <- fa(household_data)
+print(EFA_model)
+EFA_model$loadings
+fa.diagram(EFA_model)
+head(EFA_model$scores)
+summary(EFA_model$scores)
+plot(density(EFA_model$scores, na.rm = TRUE),main = "Factor Scores")
+describe(household_data)
+error.bars(household_data)
+correlation_mat<-cor(household_data)
+correlation_mat
+varimax(EFA_model$loadings, normalize = TRUE, eps = 1e-5)
