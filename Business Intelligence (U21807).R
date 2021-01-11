@@ -1,0 +1,198 @@
+#libraries import:
+library(ggplot2)
+install.packages("installr")
+library(installr)
+updateR()
+install.packages("xts")
+install.packages("fUnitRoots")
+install.packages("xts")
+install.packages("forecast", dependencies = TRUE)
+library(xts)
+library(forecast)
+library(fUnitRoots)
+update.packages(ask=FALSE, checkBuilt=TRUE)
+install.packages("e1071")
+library(e1071)
+#Excerecise-1
+
+# importing the dataset:
+excercise_1 <- read.csv(file.choose())
+head(excercise_1)
+tail(excercise_1)
+summary(excercise_1)
+colnames(excercise_1)<-c("location","death_p_million","test_per_thousand","stringency_index","population_density","older_than_65","per_capita_gdp","poverty_extreme","cardio_death_rate","diabetes_prevale","smokers_percent","handwash_facility","beds_per_thousand","Human_dev_index")
+colnames(excercise_1)
+head(excercise_1)
+tail(excercise_1)
+summary(excercise_1)
+#graphical analysis:
+head(excercise_1)
+#ScatterPlot:
+ggplot(data = excercise_1, aes(x= death_p_million, y= test_per_thousand))+ geom_point()+geom_smooth()
+ggplot(data = excercise_1, aes(x= test_per_thousand, y= stringency_index))+ geom_point()+geom_smooth()
+ggplot(data = excercise_1, aes(x= smokers_percent, y= older_than_65))+ geom_point()+geom_smooth()
+ggplot(data = excercise_1, aes(x= beds_per_thousand, y=diabetes_prevale ))+ geom_point()+geom_smooth()
+scatter.smooth(x=excercise_1$death_p_million, y = excercise_1$test_per_thousand, main=death_p_million ~ test_per_thousand)
+scatter.smooth(x=excercise_1$test_per_thousand, y = excercise_1$stringency_index, main= test_per_thousand ~ stringency_index)
+#Boxplot(Checking outliers):
+boxplot(excercise_1$cardio_death_rate, main="Death Rate By Cardio Diseases", sub=paste("Outlier rows: ", boxplot.stats(excercise_1$older_than_65)$out))
+boxplot(excercise_1$poverty_extreme, main="Extremeness of Poverty", sub=paste("Outlier rows: ", boxplot.stats(excercise_1$handwash_facility)$out))
+ggplot(data=excercise_1, aes(x= death_p_million,y=test_per_thousand))+geom_boxplot()+geom_smooth()
+ggplot(data=excercise_1, aes(x= death_p_million,y=Human_dev_index))+geom_boxplot()+geom_smooth()
+ggplot(data=excercise_1, aes(x=older_than_65 ,y=poverty_extreme))+geom_boxplot()+geom_smooth()
+ggplot(data = excercise_1, aes(x=per_capita_gdp, y=poverty_extreme ))+geom_boxplot()+geom_smooth()
+ggplot(data = excercise_1, aes(x =beds_per_thousand, y = population_density))+geom_boxplot()+geom_smooth()
+
+#Correlation:
+cor(x= excercise_1$death_p_million, y =excercise_1$death_p_million)
+
+#Buliding Linear Model:
+linearMod <- lm(excercise_1$test_per_thousand ~ excercise_1$population_density, data = excercise_1)
+print(linearMod)
+linearMod_1<- lm(excercise_1$death_p_million ~ excercise_1$poverty_extreme, data = excercise_1)
+linearMod_2<- lm(excercise_1$population_density ~ excercise_1$poverty_extreme, data = excercise_1)
+linearMod_3 <- lm(excercise_1$death_p_million ~ excercise_1$cardio_death_rate, data = excercise_1)
+print(linearMod_3)
+print(linearMod_2)
+print(linearMod_1)
+print(linearMod)
+plot(linearMod_1)
+plot(linearMod)
+plot(linearMod_2)
+
+#linear Regression Diagnostics:
+summary(linearMod)
+summary(linearMod_1)
+summary(linearMod_2)
+summary(linearMod_3)
+
+# the P value ( checking for statistical signficance):
+modelSummary <- summary(linearMod)  
+modelCoeffs <- modelSummary$coefficients  
+beta.estimate <- modelCoeffs[modelSummary$coefficients]
+std.error <- modelCoeffs[modelSummary$coefficients]  
+t_value <- beta.estimate/std.error  
+p_value <- 2*pt(-abs(t_value), df=nrow(excercise_1)-ncol(excercise_1))  
+f_statistic <- linearMod$fstatistic[1]  
+f <- summary(linearMod)$fstatistic  
+model_p <- pf(f[1], f[2], f[3], lower=FALSE)
+print(modelSummary)
+print(modelCoeffs)
+print(beta.estimate)
+print(std.error)
+print(t_value)
+print(p_value)
+print(f_statistic)
+print(f)
+print(model_p)
+plot(beta.estimate)
+AIC(linearMod)
+BIC(linearMod)
+AIC(linearMod_1)
+BIC(linearMod_1)
+AIC(linearMod_2)
+BIC(linearMod_2)
+AIC(linearMod_3)
+BIC(linearMod_3)
+
+#Creating the training and validation data samples from original data:
+set.seed(100)
+trainigRowIndex <-sample(1:nrow(excercise_1), 0.8*nrow(excercise_1))
+trainingData <- excercise_1[trainigRowIndex, ]
+testData  <- excercise_1[trainigRowIndex, ]
+print(trainigRowIndex)
+print(trainingData)
+print(testData)
+plot(trainigRowIndex)
+
+#Developing the model on the training data and use it to predict the distance on test data:
+lmMod <- lm(death_p_million ~ cardio_death_rate, data = trainingData)
+lmMod_1 <-lm(poverty_extreme ~ per_capita_gdp, data = trainingData)
+distPred <- predict(lmMod, testData)
+distPred_1<- predict(lmMod_1, testData)
+print(lmMod_1)
+print(lmMod)
+print(distPred)
+print(distPred_1)
+plot(lmMod)
+plot(lmMod_1)
+plot(distPred)
+plot(distPred_1)
+#  Reviewing Diagnostics:
+summary(lmMod)
+summary(lmMod_1)
+AIC(lmMod)
+AIC(lmMod_1)
+
+#Calculating prediction accuracy and error rates:
+actuals_preds <- data.frame(cbind(actuals=testData$per_capita_gdp, predicteds=distPred))
+actuals_preds_1 <- data.frame(cbind(actuals=testData$population_density, predicteds=distPred))
+actuals_preds_2 <- data.frame(cbind(actuals=testData$death_p_million, predicteds=distPred)) 
+actuals_preds_3 <- data.frame(cbind(actuals=testData$poverty_extreme, predicteds=distPred))
+correlation_accuracy <- cor(actuals_preds)
+correlation_accuracy_1 <- cor(actuals_preds_1)
+correlation_accuracy_2 <- cor(actuals_preds_2)
+correlation_accuracy_3 <- cor(actuals_preds_3)
+print(actuals_preds)
+print(actuals_preds_1)
+print(actuals_preds_2)
+print(actuals_preds_3)
+print(correlation_accuracy)
+print(correlation_accuracy_1)
+print(correlation_accuracy_2)
+print(correlation_accuracy_3)
+head(actuals_preds)
+head(actuals_preds_1)
+head(actuals_preds_2)
+head(actuals_preds_3)
+
+#Min-Max accuracy:
+min_max_accuracy <- mean(apply(actuals_preds, 1, min) / apply(actuals_preds, 1, max))
+mape <- mean(abs((actuals_preds$predicteds - actuals_preds$actuals))/actuals_preds$actuals)
+mape_1 <- mean(abs((actuals_preds$predicteds - actuals_preds$actuals))/actuals_preds$predicteds)
+print(min_max_accuracy)
+print(mape)
+print(mape_1)
+
+#Excercise_2:
+excercise_2 <- read.csv(file.choose())
+head(excercise_2)
+tail(excercise_2)
+ggplot(data = excercise_2, aes(x = date, y= hosp_adm_pm, color = date))+geom_point()+geom_smooth()
+tsData <- ts(data = excercise_2, start = c(2020,2), frequency = 10)
+tsData
+plot(tsData)
+boxplot(tsData)
+ggplot(data = excercise_2, aes(x= date, y =hosp_adm_pm, color=date))+geom_point()+geom_smooth()
+scatter.smooth(tsData)
+component.ts = decompose(tsData)
+plot(component.ts)
+urkpssTest(tsData, type = c("tau"), lags = c("short"),use.lag = NULL, doplot = TRUE)
+tsstationary = diff(tsData, differences=1)
+plot(tsstationary)
+acf(tsData,lag.max = 1)
+time_series_adjusted <- tsData- excercise_2$hosp_adm_pm
+tsstationary_1 <- diff(time_series_adjusted, differences=1)
+print(tsstationary_1)
+acf(tsstationary, lag.max = 10)
+#Time_series ARIMA Model
+data.ts<-as.ts(excercise_2)
+is.ts(data.ts)
+class(data.ts)
+plot(data.ts)
+frequency(data.ts)
+plot(log(data.ts))
+plot(diff(log(data.ts)))
+acf(data.ts)
+pacf(data.ts)
+pacf(diff(log(data.ts)))
+fit <- arima(log(excercise_2$hosp_adm_pm), c(0, 1, 0), seasonal = list(order = c(0, 1, 0), period = 1))
+print(fit)
+fit
+confint(fit)
+auto.arima(excercise_2$hosp_adm_pm, trace= TRUE)
+predict(fit, n.ahead = 10)
+futurVal <- forecast(fit,h=10, level=c(95.0))
+print(futurVal)
+plot(forecast(fit,h=10))
+plot(futurVal)
